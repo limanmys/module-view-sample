@@ -1,0 +1,32 @@
+name: Liman CI
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Getting Main Liman Repository
+        uses: actions/checkout@v2
+        with:
+          path: package/liman/modules/Harita
+      - name: Build Liman Module Package
+        run: |
+          rm -rf package/liman/modules/Harita/.git
+          mv package/liman/modules/Harita/DEBIAN package/
+          cd package
+          touch DEBIAN/{md5sums,control}
+
+          chmod 775 DEBIAN/{postrm,postinst}
+
+          echo """Package: liman-harita
+          Version: $GITHUB_RUN_NUMBER
+          Installed-Size: 29892
+          Maintainer: Mert CELEN <mcelen@havelsan.com.tr>
+          Section: admin
+          Date : $GITHUB_RUN_NUMBER
+          Architecture: amd64
+          Priority: important
+          Description: Liman MYS Harita Module
+          Depends: liman
+          """ > DEBIAN/control
+          cd ../
+          dpkg-deb -Zgzip --build package
